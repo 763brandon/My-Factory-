@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,7 +70,9 @@ import com.myfactory.forge.ui.theme.ForgeTheme
 import com.myfactory.forge.ui.viewmodel.ChatViewModel
 import com.myfactory.forge.core.preview.StaticHttpServer
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
@@ -141,16 +144,20 @@ private fun ForgeApp(container: AppContainer) {
                     container.repository.deleteProject(target)
                     // The database row is gone; take the files with it, or the
                     // storage stays used with nothing pointing at it.
-                    runCatching { File(target.rootPath).deleteRecursively() }
-                    runCatching {
-                        File(container.checkpointsRoot, target.id).deleteRecursively()
+                    withContext(Dispatchers.IO) {
+                        runCatching { File(target.rootPath).deleteRecursively() }
+                        runCatching {
+                            File(container.checkpointsRoot, target.id).deleteRecursively()
+                        }
                     }
                 }
             },
             onCreate = { name ->
                 scope.launch {
                     val id = UUID.randomUUID().toString()
-                    val root = File(container.projectsRoot, id).apply { mkdirs() }
+                    val root = withContext(Dispatchers.IO) {
+                        File(container.projectsRoot, id).apply { mkdirs() }
+                    }
                     val now = System.currentTimeMillis()
                     val created = Project(id, name, root.absolutePath, now, now)
                     container.repository.saveProject(created)
@@ -176,6 +183,17 @@ private fun ForgeApp(container: AppContainer) {
     }
     var bootstrapProgress by remember { mutableStateOf<BootstrapProgress?>(null) }
     var terminalSession by remember { mutableStateOf<TerminalSession?>(null) }
+
+    // Measuring checkpoint storage walks a directory, so it is computed once
+    // when the screen opens rather than on every recomposition.
+    var checkpointStorageBytes by remember(project.id) { mutableLongStateOf(0L) }
+    LaunchedEffect(showCheckpoints, checkpoints.size) {
+        if (showCheckpoints) {
+            checkpointStorageBytes = withContext(Dispatchers.IO) {
+                checkpointManager.totalStorageBytes()
+            }
+        }
+    }
 
     val previewServer = remember(project.id) { StaticHttpServer(projectRoot) }
     var servingUrl by remember(project.id) { mutableStateOf<String?>(null) }
@@ -297,17 +315,22 @@ private fun ForgeApp(container: AppContainer) {
 
             showCheckpoints -> CheckpointsScreen(
                 checkpoints = checkpoints,
-                storageBytes = checkpointManager.totalStorageBytes(),
+                storageBytes = checkpointStorageBytes,
                 onCreate = {
                     scope.launch {
-                        runCatching {
-                            checkpointManager.create(project.id, "Manual checkpoint")
+                        // Zipping a project is unbounded work; never on Main.
+                        withContext(Dispatchers.IO) {
+                            runCatching {
+                                checkpointManager.create(project.id, "Manual checkpoint")
+                            }
                         }.onSuccess { container.repository.saveCheckpoint(it) }
                     }
                 },
                 onRestore = { checkpoint ->
                     scope.launch {
-                        runCatching { checkpointManager.restore(checkpoint) }
+                        withContext(Dispatchers.IO) {
+                            runCatching { checkpointManager.restore(checkpoint) }
+                        }
                         container.repository.record(
                             category = AuditCategory.CHECKPOINT_RESTORE,
                             summary = "Restored ${checkpoint.label}",
@@ -317,7 +340,7 @@ private fun ForgeApp(container: AppContainer) {
                 },
                 onDelete = { checkpoint ->
                     scope.launch {
-                        checkpointManager.delete(checkpoint)
+                        withContext(Dispatchers.IO) { checkpointManager.delete(checkpoint) }
                         container.repository.deleteCheckpoint(checkpoint.id)
                     }
                 },
@@ -328,7 +351,10 @@ private fun ForgeApp(container: AppContainer) {
                 patches = reviewPatches!!,
                 onApply = { rejected ->
                     scope.launch {
-                        val reverted = WorkspaceDiff.revert(workspace, reviewPatches!!, rejected)
+                        val patches = reviewPatches.orEmpty()
+                        val reverted = withContext(Dispatchers.IO) {
+                            WorkspaceDiff.revert(workspace, patches, rejected)
+                        }
                         if (reverted.isNotEmpty()) {
                             container.repository.record(
                                 category = AuditCategory.FILE_WRITE,
@@ -358,18 +384,22 @@ private fun ForgeApp(container: AppContainer) {
                     scope.launch {
                         val newest = container.repository
                             .observeCheckpoints(project.id).first().firstOrNull()
+                        // Reading a checkpoint zip and diffing the tree is
+                        // the heaviest operation in the app.
                         reviewPatches = if (newest == null) {
                             emptyList()
                         } else {
-                            runCatching {
-                                WorkspaceDiff.against(
-                                    workspace,
-                                    File(
-                                        File(container.checkpointsRoot, project.id),
-                                        newest.id + ".zip",
-                                    ),
-                                )
-                            }.getOrDefault(emptyList())
+                            withContext(Dispatchers.IO) {
+                                runCatching {
+                                    WorkspaceDiff.against(
+                                        workspace,
+                                        File(
+                                            File(container.checkpointsRoot, project.id),
+                                            newest.id + ".zip",
+                                        ),
+                                    )
+                                }.getOrDefault(emptyList())
+                            }
                         }
                     }
                 },
@@ -415,8 +445,10 @@ private fun ForgeApp(container: AppContainer) {
                 initialUrl = "http://127.0.0.1:3000",
                 servingUrl = servingUrl,
                 onStartServing = {
-                    runCatching { previewServer.start() }
-                        .onSuccess { servingUrl = previewServer.baseUrl() }
+                    scope.launch {
+                        withContext(Dispatchers.IO) { runCatching { previewServer.start() } }
+                            .onSuccess { servingUrl = previewServer.baseUrl() }
+                    }
                 },
                 onStopServing = {
                     previewServer.stop()

@@ -18,12 +18,15 @@ import com.myfactory.forge.core.files.WorkspaceFs
 import com.myfactory.forge.core.session.AuditCategory
 import com.myfactory.forge.di.AppContainer
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
@@ -102,6 +105,7 @@ class ChatViewModel(
     private val _state = MutableStateFlow(ChatUiState())
     val state: StateFlow<ChatUiState> = _state.asStateFlow()
 
+    @Volatile
     private var agentState = AgentSessionState()
     private var runJob: Job? = null
     private var pendingDecision: CompletableDeferred<ApprovalDecision>? = null
@@ -149,12 +153,11 @@ class ChatViewModel(
             val activeId = container.settings.current.activeProviderConfigId
             val config = activeId?.let { container.repository.providerConfig(it) }
                 ?: container.repository.providerConfigs().firstOrNull()
-            _state.update {
-                it.copy(
-                    activeProvider = config,
-                    shellDescription = shellRunnerProvider()?.describeEnvironment(),
-                )
+            // describeEnvironment stats the native library directory.
+            val shell = withContext(Dispatchers.IO) {
+                shellRunnerProvider()?.describeEnvironment()
             }
+            _state.update { it.copy(activeProvider = config, shellDescription = shell) }
         }
     }
 
@@ -176,7 +179,12 @@ class ChatViewModel(
             val loop = buildLoop(config, provider, capabilities)
             var assistantId: String? = null
 
+            // The loop does blocking work: file reads, project-wide search,
+            // command execution and network streaming. flowOn moves all of
+            // that off the main thread while the collector, which is what
+            // touches UI state, stays on it.
             loop.run(agentState, message) { agentState = it }
+                .flowOn(Dispatchers.IO)
                 .collect { event -> assistantId = handle(event, assistantId) }
 
             _state.update { it.copy(isRunning = false) }
@@ -317,23 +325,27 @@ class ChatViewModel(
     }
 
     private suspend fun takeAutomaticCheckpoint() {
-        runCatching {
-            val checkpoint = checkpoints.create(
-                projectId = projectId,
-                label = "Before agent turn",
-                automatic = true,
-                sessionId = sessionId,
-            )
-            container.repository.saveCheckpoint(checkpoint)
-            container.repository.pruneAutomaticCheckpoints(projectId).forEach {
-                checkpoints.delete(it)
+        // Zipping the workspace before every agent turn is the single largest
+        // blocking operation in the app, and it must never run on Main.
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val checkpoint = checkpoints.create(
+                    projectId = projectId,
+                    label = "Before agent turn",
+                    automatic = true,
+                    sessionId = sessionId,
+                )
+                container.repository.saveCheckpoint(checkpoint)
+                container.repository.pruneAutomaticCheckpoints(projectId).forEach {
+                    checkpoints.delete(it)
+                }
+                container.repository.record(
+                    category = AuditCategory.CHECKPOINT_CREATE,
+                    summary = "Automatic checkpoint, ${checkpoint.fileCount} files",
+                    projectId = projectId,
+                    sessionId = sessionId,
+                )
             }
-            container.repository.record(
-                category = AuditCategory.CHECKPOINT_CREATE,
-                summary = "Automatic checkpoint, ${checkpoint.fileCount} files",
-                projectId = projectId,
-                sessionId = sessionId,
-            )
         }.onFailure { error ->
             // A project too large to snapshot should not block the agent; the
             // user is told, and can turn the setting off.

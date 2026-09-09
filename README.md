@@ -46,7 +46,7 @@ that configuration.
 | Provider adapters and streaming | Verified | 27 unit tests replaying recorded byte streams at hostile chunk boundaries |
 | Agent loop and approval gate | Verified | 17 unit tests, including that no approval-gated tool runs without consent |
 | Workspace path safety | Verified | 17 unit tests covering traversal, symlink escape, absolute paths, null bytes |
-| Tar extractor, checkpoints, preview server | Verified | 31 unit tests, including tar-slip and loopback-only binding |
+| Tar extractor, checkpoints, preview server | Verified | 33 unit tests, including tar-slip, loopback-only binding, and stop-then-restart |
 | Syntax highlighter and loopback URL guard | Verified | 14 unit tests |
 | Android 7 API floor in `:core` | Verified | compiled classes scanned for `java.time` and `java.nio.file` |
 | Native PTY builds for all four ABIs | Verified | `.so` inspected per ABI; all six JNI symbols exported |
@@ -56,7 +56,7 @@ that configuration.
 | WebView preview rendering | Untested | logic tested; rendering needs a device |
 | Keystore encryption | Untested | instrumented tests written; the keystore only exists on a device |
 
-Total: **172 automated tests, all passing** (158 in `:core`, 14 in `:app`).
+Total: **174 automated tests, all passing** (160 in `:core`, 14 in `:app`).
 Android lint reports no correctness, internationalisation or accessibility
 findings; what remains are version-currency notices on pinned dependencies.
 
@@ -179,7 +179,7 @@ git clone https://github.com/763brandon/My-Factory-.git
 cd My-Factory-
 echo "sdk.dir=/path/to/your/android-sdk" > local.properties
 
-./gradlew :core:test          # 158 tests, no device or SDK needed
+./gradlew :core:test          # 160 tests, no device or SDK needed
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug  # per-ABI plus universal APKs
 ./gradlew :app:assembleRelease

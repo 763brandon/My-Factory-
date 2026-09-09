@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +48,9 @@ import com.myfactory.forge.ui.components.SyntaxHighlighter
 import com.myfactory.forge.ui.components.formatBytes
 import com.myfactory.forge.ui.theme.CodeTextStyle
 import com.myfactory.forge.ui.theme.LocalCodeColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The code editor.
@@ -71,6 +75,7 @@ fun EditorScreen(
     onClose: (() -> Unit)? = null,
 ) {
     val codeColors = LocalCodeColors.current
+    val scope = rememberCoroutineScope()
     var value by remember(relativePath) { mutableStateOf(TextFieldValue("")) }
     var loadError by remember(relativePath) { mutableStateOf<String?>(null) }
     var readOnly by remember(relativePath) { mutableStateOf(false) }
@@ -81,8 +86,12 @@ fun EditorScreen(
         SyntaxHighlighter.Language.forFileName(relativePath)
     }
 
+    // A 4 MB read on the main thread is a visible stall on the hardware this
+    // app targets.
     LaunchedEffect(relativePath) {
-        runCatching { workspace.read(relativePath, capabilities.editorFileSizeLimitBytes) }
+        withContext(Dispatchers.IO) {
+            runCatching { workspace.read(relativePath, capabilities.editorFileSizeLimitBytes) }
+        }
             .onSuccess { content ->
                 when {
                     content.isBinary -> {
@@ -138,12 +147,15 @@ fun EditorScreen(
             saved = savedNotice,
             readOnly = readOnly,
             onSave = {
-                runCatching { workspace.write(relativePath, value.text) }
-                    .onSuccess {
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching { workspace.write(relativePath, value.text) }
+                    }.onSuccess {
                         dirty = false
                         savedNotice = true
                         onSaved()
                     }
+                }
             },
         )
 

@@ -116,6 +116,30 @@ class StaticHttpServerTest {
     }
 
     @Test
+    fun `a server can be stopped and started again`() {
+        // The user taps "stop serving" and then "serve" again. Holding one
+        // executor for the object's lifetime made the second start bind a
+        // socket and then drop every request in silence.
+        server.stop()
+        server.start()
+
+        val (status, body) = request("/")
+
+        assertTrue(server.isRunning)
+        assertEquals(200, status)
+        assertEquals("<h1>Home</h1>", body)
+    }
+
+    @Test
+    fun `restarting several times keeps serving`() {
+        repeat(3) {
+            server.stop()
+            server.start()
+            assertEquals(200, request("/app.js").first)
+        }
+    }
+
+    @Test
     fun `content types are correct for the common web assets`() {
         assertEquals("text/html; charset=utf-8", StaticHttpServer.contentTypeFor("a.html"))
         assertEquals("text/javascript; charset=utf-8", StaticHttpServer.contentTypeFor("a.js"))

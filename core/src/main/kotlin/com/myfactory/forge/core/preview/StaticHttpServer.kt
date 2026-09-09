@@ -7,6 +7,7 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
@@ -27,17 +28,19 @@ import java.util.concurrent.atomic.AtomicBoolean
 class StaticHttpServer(
     private val rootDir: File,
     private val requestedPort: Int = 0,
-    threadCount: Int = 4,
+    private val threadCount: Int = 4,
 ) {
 
     private val running = AtomicBoolean(false)
     private var serverSocket: ServerSocket? = null
-    private val pool = Executors.newFixedThreadPool(
-        threadCount,
-        ThreadFactory { runnable ->
-            Thread(runnable, "forge-preview").apply { isDaemon = true }
-        },
-    )
+
+    /**
+     * Recreated on every [start]. An executor cannot be restarted after
+     * shutdownNow, so holding one for the life of the object would make a
+     * stop-then-start cycle bind a socket and then silently drop every
+     * request, which looks to the user like the preview hanging.
+     */
+    private var pool: ExecutorService? = null
 
     /** The bound port. Valid only while running. */
     var port: Int = -1
@@ -54,6 +57,8 @@ class StaticHttpServer(
         val socket = ServerSocket(requestedPort, BACKLOG, loopback)
         serverSocket = socket
         port = socket.localPort
+        val workers = newPool()
+        pool = workers
         running.set(true)
 
         Thread({
@@ -65,7 +70,9 @@ class StaticHttpServer(
                 } catch (e: IOException) {
                     continue
                 }
-                pool.execute { handle(client) }
+                // The pool can be gone if stop() raced this accept.
+                runCatching { workers.execute { handle(client) } }
+                    .onFailure { runCatching { client.close() } }
             }
         }, "forge-preview-accept").apply { isDaemon = true }.start()
 
@@ -78,8 +85,16 @@ class StaticHttpServer(
         runCatching { serverSocket?.close() }
         serverSocket = null
         port = -1
-        pool.shutdownNow()
+        pool?.shutdownNow()
+        pool = null
     }
+
+    private fun newPool(): ExecutorService = Executors.newFixedThreadPool(
+        threadCount,
+        ThreadFactory { runnable ->
+            Thread(runnable, "forge-preview").apply { isDaemon = true }
+        },
+    )
 
     private fun handle(client: Socket) {
         client.use { socket ->

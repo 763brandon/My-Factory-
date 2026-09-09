@@ -9,7 +9,7 @@ keep them.
 **1. `:core` stays free of Android.**
 
 `:core` is a plain Kotlin/JVM module. Everything that does not need a device
-lives there, which is why 158 of the project's tests run on any machine in
+lives there, which is why 160 of the project's tests run on any machine in
 about three seconds. If you find yourself importing `android.*` into `:core`,
 define an interface there and implement it in `:app` or `:runtime-linux`
 instead. `CapabilityDetector` and `DeviceProfile` are the pattern to copy.

@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +46,9 @@ import com.myfactory.forge.core.files.FileNode
 import com.myfactory.forge.core.files.WorkspaceFs
 import com.myfactory.forge.ui.components.EmptyState
 import com.myfactory.forge.ui.components.formatBytes
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * A single-directory file browser with create, rename and delete.
@@ -61,6 +65,7 @@ fun FilesScreen(
     onReviewChanges: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scope = rememberCoroutineScope()
     var currentPath by remember { mutableStateOf("") }
     var nodes by remember { mutableStateOf<List<FileNode>>(emptyList()) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -72,8 +77,11 @@ fun FilesScreen(
     var renaming by remember { mutableStateOf<FileNode?>(null) }
     var deleting by remember { mutableStateOf<FileNode?>(null) }
 
+    // LaunchedEffect runs on the main dispatcher. Listing a directory with a
+    // few thousand entries on a slow eMMC phone is exactly the kind of
+    // main-thread I/O that drops frames, so it goes to IO explicitly.
     LaunchedEffect(currentPath, revision) {
-        runCatching { workspace.list(currentPath) }
+        withContext(Dispatchers.IO) { runCatching { workspace.list(currentPath) } }
             .onSuccess {
                 nodes = it
                 error = null
@@ -172,15 +180,19 @@ fun FilesScreen(
             initial = "",
             onConfirm = { name ->
                 val target = if (currentPath.isEmpty()) name else "$currentPath/$name"
-                runCatching {
-                    if (kind == CreateKind.FILE) {
-                        workspace.write(target, "")
-                    } else {
-                        workspace.mkdirs(target)
-                    }
-                }.onFailure { error = it.message }
-                creating = null
-                revision++
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            if (kind == CreateKind.FILE) {
+                                workspace.write(target, "")
+                            } else {
+                                workspace.mkdirs(target)
+                            }
+                        }
+                    }.onFailure { error = it.message }
+                    creating = null
+                    revision++
+                }
             },
             onDismiss = { creating = null },
         )
@@ -193,10 +205,13 @@ fun FilesScreen(
             onConfirm = { name ->
                 val parent = node.relativePath.substringBeforeLast('/', "")
                 val target = if (parent.isEmpty()) name else "$parent/$name"
-                runCatching { workspace.move(node.relativePath, target) }
-                    .onFailure { error = it.message }
-                renaming = null
-                revision++
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching { workspace.move(node.relativePath, target) }
+                    }.onFailure { error = it.message }
+                    renaming = null
+                    revision++
+                }
             },
             onDismiss = { renaming = null },
         )
@@ -212,10 +227,15 @@ fun FilesScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        runCatching { workspace.delete(node.relativePath, recursive = true) }
-                            .onFailure { error = it.message }
-                        deleting = null
-                        revision++
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                runCatching {
+                                    workspace.delete(node.relativePath, recursive = true)
+                                }
+                            }.onFailure { error = it.message }
+                            deleting = null
+                            revision++
+                        }
                     },
                 ) {
                     Text(stringResource(R.string.action_confirm))
