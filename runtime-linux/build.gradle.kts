@@ -74,6 +74,7 @@ dependencies {
     api(project(":core"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.coroutines.android)
+    implementation(libs.okhttp)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.junit)
