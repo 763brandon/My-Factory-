@@ -2,7 +2,6 @@ package com.myfactory.forge.security
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -39,10 +38,15 @@ class KeystoreSecretStore(context: Context) : SecretStore {
     var lastError: String? = null
         private set
 
-    val isHardwareBacked: Boolean
+    /**
+     * Whether a key exists in the platform keystore at all. Whether the
+     * keystore is hardware-backed on this specific device is not knowable
+     * without KeyInfo, and is not worth an extra reflective call: the API 24
+     * floor already guarantees the keystore itself.
+     */
+    val hasWrappingKey: Boolean
         get() = runCatching {
-            val entry = keyStore.getEntry(KEY_ALIAS, null) as? KeyStore.SecretKeyEntry
-            entry != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+            keyStore.getEntry(KEY_ALIAS, null) as? KeyStore.SecretKeyEntry != null
         }.getOrDefault(false)
 
     private val keyStore: KeyStore by lazy {

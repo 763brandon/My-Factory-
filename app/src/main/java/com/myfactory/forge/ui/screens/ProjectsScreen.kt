@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,18 +34,24 @@ import com.myfactory.forge.ui.components.EmptyState
 import java.text.DateFormat
 import java.util.Date
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectsScreen(
     projects: List<Project>,
     onOpen: (Project) -> Unit,
     onCreate: (String) -> Unit,
+    onDelete: (Project) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showCreate by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
+    var pendingDelete by remember { mutableStateOf<Project?>(null) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(title = { Text(stringResource(R.string.projects_title)) })
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showCreate = true },
@@ -74,12 +81,41 @@ fun ProjectsScreen(
                         leadingContent = {
                             Icon(Icons.Default.Folder, contentDescription = null)
                         },
+                        trailingContent = {
+                            TextButton(onClick = { pendingDelete = project }) {
+                                Text(stringResource(R.string.projects_delete))
+                            }
+                        },
                         modifier = Modifier.clickable { onOpen(project) },
                     )
                     HorizontalDivider()
                 }
             }
         }
+    }
+
+    // Deleting a project removes its files for good, so the dialog names it.
+    pendingDelete?.let { project ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text(stringResource(R.string.projects_delete)) },
+            text = { Text(stringResource(R.string.projects_delete_confirm, project.name)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete(project)
+                        pendingDelete = null
+                    },
+                ) {
+                    Text(stringResource(R.string.action_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 
     if (showCreate) {

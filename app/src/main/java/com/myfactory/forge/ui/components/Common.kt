@@ -115,10 +115,19 @@ fun TierChip(label: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** Human-readable byte counts, used in several screens. */
-fun formatBytes(bytes: Long): String = when {
-    bytes >= 1024L * 1024 * 1024 -> String.format("%.1f GB", bytes.toDouble() / (1024L * 1024 * 1024))
-    bytes >= 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
-    bytes >= 1024 -> "${bytes / 1024} KB"
-    else -> "$bytes B"
-}
+/**
+ * Human-readable byte counts, used in several screens.
+ *
+ * The locale is passed explicitly. This text is shown to the user, so it
+ * should follow their locale's decimal separator and digits, and relying on
+ * the implicit default is the kind of thing that silently changes behaviour
+ * when a library sets it.
+ */
+fun formatBytes(bytes: Long, locale: java.util.Locale = java.util.Locale.getDefault()): String =
+    when {
+        bytes >= 1024L * 1024 * 1024 ->
+            String.format(locale, "%.1f GB", bytes.toDouble() / (1024L * 1024 * 1024))
+        bytes >= 1024 * 1024 -> String.format(locale, "%d MB", bytes / (1024 * 1024))
+        bytes >= 1024 -> String.format(locale, "%d KB", bytes / 1024)
+        else -> String.format(locale, "%d B", bytes)
+    }

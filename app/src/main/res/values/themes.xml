@@ -4,8 +4,12 @@
       A bare host theme. Everything visible is Material 3 in Compose; this
       exists so the window has sane background and status-bar colours before
       the first frame, which avoids a white flash on a slow device.
+
+      The AppCompat parent is required: AppCompatActivity refuses to start
+      without one, and the per-app language picker in Settings depends on
+      AppCompatDelegate to re-create the activity when the locale changes.
     -->
-    <style name="Theme.Forge" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Forge" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

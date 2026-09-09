@@ -10,6 +10,9 @@ plugins {
     alias(libs.plugins.ksp) apply false
 }
 
+// The default root clean only removes the root build directory, which leaves
+// every module's output in place and makes "clean build" misleading.
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
+    subprojects.forEach { delete(it.layout.buildDirectory) }
 }

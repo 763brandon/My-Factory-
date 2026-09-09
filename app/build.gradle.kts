@@ -163,6 +163,11 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
+    // Robolectric supplies android.net.Uri so the loopback guard can be
+    // tested without a device.
+    testImplementation(libs.robolectric)
+    testImplementation(composeBom)
+    testImplementation(libs.compose.ui.graphics)
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.androidx.test.junit)

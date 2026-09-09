@@ -68,14 +68,10 @@ object AndroidDeviceProfiler {
      * and reports a version.
      */
     private fun hasWebView(context: Context): Boolean = runCatching {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            android.webkit.WebView.getCurrentWebViewPackage() != null
-        } else {
-            context.packageManager.getPackageInfo("com.google.android.webview", 0) != null
-        }
+        // WebViewCompat resolves the provider on API 24 and 25 too, where the
+        // framework call does not exist and the package name varies by vendor.
+        androidx.webkit.WebViewCompat.getCurrentWebViewPackage(context) != null
     }.getOrElse {
-        // On API 24 to 25 the package name varies by vendor, so fall back to
-        // asking whether anything can handle a web intent.
         runCatching {
             context.packageManager.hasSystemFeature(PackageManager.FEATURE_WEBVIEW)
         }.getOrDefault(false)

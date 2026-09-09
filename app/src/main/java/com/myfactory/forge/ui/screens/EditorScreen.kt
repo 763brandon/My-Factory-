@@ -15,11 +15,13 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,6 +67,8 @@ fun EditorScreen(
     showLineNumbers: Boolean,
     modifier: Modifier = Modifier,
     onSaved: () -> Unit = {},
+    /** Called once it is safe to leave, either saved or explicitly discarded. */
+    onClose: (() -> Unit)? = null,
 ) {
     val codeColors = LocalCodeColors.current
     var value by remember(relativePath) { mutableStateOf(TextFieldValue("")) }
@@ -114,6 +118,16 @@ fun EditorScreen(
                 // Offsets are unchanged: only spans are added, never characters.
                 androidx.compose.ui.text.input.OffsetMapping.Identity,
             )
+        }
+    }
+
+    var confirmingDiscard by remember(relativePath) { mutableStateOf(false) }
+
+    // The system back gesture is the most common way to leave a screen, so it
+    // has to go through the same check as the toolbar.
+    if (onClose != null) {
+        androidx.activity.compose.BackHandler(enabled = true) {
+            if (dirty) confirmingDiscard = true else onClose()
         }
     }
 
@@ -183,6 +197,31 @@ fun EditorScreen(
 
         StatusBar(value)
     }
+
+    if (confirmingDiscard && onClose != null) {
+        AlertDialog(
+            onDismissRequest = { confirmingDiscard = false },
+            title = { Text(stringResource(R.string.editor_discard_title)) },
+            text = {
+                Text(stringResource(R.string.editor_discard_body, relativePath))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmingDiscard = false
+                        onClose()
+                    },
+                ) {
+                    Text(stringResource(R.string.editor_discard))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingDiscard = false }) {
+                    Text(stringResource(R.string.editor_keep_editing))
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -217,14 +256,11 @@ private fun EditorBar(
                 )
             }
             if (!readOnly) {
-                IconButton(
-                    onClick = onSave,
-                    enabled = dirty,
-                    modifier = Modifier.semantics {
-                        contentDescription = "Save this file"
-                    },
-                ) {
-                    Icon(Icons.Default.Save, contentDescription = null)
+                IconButton(onClick = onSave, enabled = dirty) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = stringResource(R.string.editor_save),
+                    )
                 }
             }
         }

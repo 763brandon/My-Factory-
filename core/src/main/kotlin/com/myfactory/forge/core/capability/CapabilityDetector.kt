@@ -159,9 +159,17 @@ object CapabilityDetector {
         return LinuxStrategy.BUSYBOX
     }
 
-    internal fun formatBytes(bytes: Long): String = when {
-        bytes >= GIB -> String.format("%.1f GB", bytes.toDouble() / GIB)
-        bytes >= MIB -> "${bytes / MIB} MB"
-        else -> "$bytes B"
+    /**
+     * These strings reach the user through the detection notes in Settings,
+     * so the locale is explicit rather than implicit. Lint cannot see this
+     * module, which is exactly why it is worth stating.
+     */
+    internal fun formatBytes(
+        bytes: Long,
+        locale: java.util.Locale = java.util.Locale.getDefault(),
+    ): String = when {
+        bytes >= GIB -> String.format(locale, "%.1f GB", bytes.toDouble() / GIB)
+        bytes >= MIB -> String.format(locale, "%d MB", bytes / MIB)
+        else -> String.format(locale, "%d B", bytes)
     }
 }

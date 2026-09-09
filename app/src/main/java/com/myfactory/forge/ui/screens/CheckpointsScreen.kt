@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.myfactory.forge.R
@@ -36,6 +37,7 @@ import java.util.Date
 @Composable
 fun CheckpointsScreen(
     checkpoints: List<Checkpoint>,
+    storageBytes: Long,
     onCreate: () -> Unit,
     onRestore: (Checkpoint) -> Unit,
     onDelete: (Checkpoint) -> Unit,
@@ -62,6 +64,20 @@ fun CheckpointsScreen(
             )
         } else {
             LazyColumn(modifier = Modifier.padding(padding)) {
+                item {
+                    // Snapshots accumulate quietly; on a phone with 3 GB free
+                    // the user needs to be able to see the cost.
+                    Text(
+                        text = stringResource(
+                            R.string.checkpoints_storage,
+                            formatBytes(storageBytes),
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                    HorizontalDivider()
+                }
                 items(checkpoints, key = { it.id }) { checkpoint ->
                     ListItem(
                         headlineContent = { Text(checkpoint.label) },
@@ -70,11 +86,12 @@ fun CheckpointsScreen(
                                 text = DateFormat
                                     .getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
                                     .format(Date(checkpoint.createdAtMillis)) +
-                                    "  ·  " + stringResource(
-                                        R.string.checkpoints_detail,
+                                    "  ·  " + pluralStringResource(
+                                        R.plurals.checkpoints_file_count,
                                         checkpoint.fileCount,
-                                        formatBytes(checkpoint.archiveBytes),
-                                    ),
+                                        checkpoint.fileCount,
+                                    ) +
+                                    "  ·  " + formatBytes(checkpoint.archiveBytes),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         },

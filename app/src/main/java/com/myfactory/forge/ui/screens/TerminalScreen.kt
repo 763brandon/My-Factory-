@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -195,7 +196,7 @@ private fun ShellPane(
     val codeColors = LocalCodeColors.current
     var draft by remember { mutableStateOf("") }
     val lines = remember { mutableListOf<String>() }
-    var revision by remember { mutableStateOf(0) }
+    var revision by remember { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
 
     val state = session?.state?.collectAsState()
@@ -250,6 +251,19 @@ private fun ShellPane(
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(12.dp),
             )
+        }
+
+        // A shell that exited should say so, and say why. Silence looks like
+        // a hang.
+        if (state?.value == TerminalSession.State.EXITED) {
+            session?.exitCode?.let { code ->
+                Text(
+                    text = stringResource(R.string.terminal_exited, code),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
         }
 
         Surface(tonalElevation = 3.dp) {

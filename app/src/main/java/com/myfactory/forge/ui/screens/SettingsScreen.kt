@@ -13,6 +13,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +46,9 @@ fun SettingsScreen(
     onSetActiveProvider: (ProviderConfig) -> Unit,
     onOpenAuditLog: () -> Unit,
     onClearKeys: () -> Unit,
+    /** Null means follow the system language. */
+    onSetLanguage: (String?) -> Unit,
+    onOpenSource: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -96,7 +100,7 @@ fun SettingsScreen(
                             )
                         }
                         TextButton(onClick = { onEditProvider(provider) }) {
-                            Text(stringResource(R.string.settings_save))
+                            Text(stringResource(R.string.settings_edit))
                         }
                     }
                 }
@@ -220,6 +224,43 @@ fun SettingsScreen(
 
         // ------------------------------------------------------ appearance
         Section(stringResource(R.string.settings_appearance)) {
+            Text(
+                text = stringResource(R.string.settings_language),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = settings.languageTag == null,
+                    onClick = { onSetLanguage(null) },
+                    label = { Text(stringResource(R.string.settings_language_system)) },
+                )
+                LANGUAGES.forEach { (tag, label) ->
+                    FilterChip(
+                        selected = settings.languageTag == tag,
+                        onClick = { onSetLanguage(tag) },
+                        label = { Text(label) },
+                    )
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.settings_editor_font),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Slider(
+                value = settings.editorFontScale,
+                onValueChange = { value ->
+                    // Rounded to a tenth so the slider produces stable,
+                    // repeatable sizes rather than 1.0333333.
+                    val rounded = (value * 10).toInt() / 10f
+                    onUpdateSettings { it.copy(editorFontScale = rounded) }
+                },
+                valueRange = 0.8f..2.0f,
+                steps = 11,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             SwitchRow(
                 title = stringResource(R.string.settings_soft_wrap),
                 body = "",
@@ -237,6 +278,9 @@ fun SettingsScreen(
         // ----------------------------------------------------------- about
         Section(stringResource(R.string.settings_about)) {
             Text(stringResource(R.string.settings_version, versionName))
+            TextButton(onClick = onOpenSource) {
+                Text(stringResource(R.string.settings_source))
+            }
             Text(
                 text = stringResource(R.string.settings_licence),
                 style = MaterialTheme.typography.bodySmall,
@@ -286,3 +330,14 @@ private fun SwitchRow(
         Switch(checked = checked, onCheckedChange = onChange)
     }
 }
+
+/**
+ * The languages this build ships translations for. Adding one means adding a
+ * values-<tag> directory and a row here; there is no other code change.
+ */
+private val LANGUAGES = listOf(
+    "en" to "English",
+    "fr" to "Français",
+    "sw" to "Kiswahili",
+    "ar" to "العربية",
+)

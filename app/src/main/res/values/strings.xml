@@ -5,12 +5,10 @@
   anything but resources. Layouts use start/end rather than left/right
   throughout, so a right-to-left locale needs no extra work.
 -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Forge</string>
-    <string name="app_tagline">On-device AI coding</string>
 
     <!-- Navigation -->
-    <string name="nav_projects">Projects</string>
     <string name="nav_chat">Agent</string>
     <string name="nav_files">Files</string>
     <string name="nav_terminal">Terminal</string>
@@ -30,10 +28,8 @@
     <string name="projects_delete">Delete project</string>
     <string name="projects_delete_confirm">Delete “%1$s” and all its files? This cannot be undone.</string>
     <string name="projects_opened_never">Never opened</string>
-    <string name="projects_file_count">%1$d files</string>
 
     <!-- Agent chat -->
-    <string name="chat_title">Agent</string>
     <string name="chat_input_hint">Ask the agent to change your code</string>
     <string name="chat_send">Send</string>
     <string name="chat_stop">Stop</string>
@@ -47,14 +43,13 @@
     <string name="chat_tool_done">%1$s finished</string>
     <string name="chat_tool_failed">%1$s failed</string>
     <string name="chat_tool_rejected">You declined %1$s</string>
-    <string name="chat_iteration_limit">The agent stopped after %1$d turns. Send another message to continue.</string>
     <string name="chat_error_auth">The provider rejected your API key. Check it in Settings.</string>
     <string name="chat_error_rate_limit">Rate limited by the provider. Try again shortly.</string>
     <string name="chat_error_network">Could not reach the provider. Check your connection.</string>
     <string name="chat_error_generic">Something went wrong: %1$s</string>
-    <string name="chat_retry">Retry</string>
     <string name="chat_destination">Sending to %1$s</string>
-    <string name="chat_tokens">%1$d in / %2$d out</string>
+    <!-- Two independent counts, so no single plural category fits. -->
+    <string name="chat_tokens" tools:ignore="PluralsCandidate">%1$d in / %2$d out</string>
 
     <!-- Approval -->
     <string name="approval_title">Approve this action?</string>
@@ -64,7 +59,6 @@
     <string name="approval_allow">Allow once</string>
     <string name="approval_allow_session">Allow for this session</string>
     <string name="approval_deny">Decline</string>
-    <string name="approval_deny_reason">The user declined.</string>
     <string name="approval_no_preview">No preview is available for this action.</string>
     <string name="approval_runs_in">Runs in: %1$s</string>
 
@@ -89,13 +83,13 @@
 
     <!-- Diff review -->
     <string name="diff_title">Review changes</string>
-    <string name="diff_summary">%1$d added, %2$d removed</string>
+    <!-- Two independent counts, so no single plural category fits. -->
+    <string name="diff_summary" tools:ignore="PluralsCandidate">%1$d added, %2$d removed</string>
     <string name="diff_hunk">Change %1$d of %2$d</string>
     <string name="diff_accept_hunk">Accept</string>
     <string name="diff_reject_hunk">Reject</string>
     <string name="diff_accept_all">Accept all</string>
     <string name="diff_reject_all">Reject all</string>
-    <string name="diff_apply">Apply %1$d change(s)</string>
     <string name="diff_no_changes">No changes to review.</string>
 
     <!-- Checkpoints -->
@@ -106,11 +100,9 @@
     <string name="checkpoints_delete">Delete</string>
     <string name="checkpoints_automatic">Automatic</string>
     <string name="checkpoints_restore_confirm">Restore “%1$s”? Files changed since then will be lost.</string>
-    <string name="checkpoints_detail">%1$d files, %2$s</string>
     <string name="checkpoints_storage">Checkpoints use %1$s</string>
 
     <!-- Terminal -->
-    <string name="terminal_title">Terminal</string>
     <string name="terminal_unavailable_title">No terminal on this device</string>
     <string name="terminal_start">Start shell</string>
     <string name="terminal_stop">Stop</string>
@@ -128,7 +120,6 @@
     <string name="terminal_busybox_note">Basic file commands are available. Package managers, Node and Git are not.</string>
 
     <!-- Preview -->
-    <string name="preview_title">Preview</string>
     <string name="preview_unavailable_title">Preview is unavailable</string>
     <string name="preview_refresh">Refresh</string>
     <string name="preview_url_hint">http://127.0.0.1:3000</string>
@@ -139,7 +130,6 @@
     <string name="preview_load_failed">Could not load %1$s</string>
 
     <!-- Settings -->
-    <string name="settings_title">Settings</string>
     <string name="settings_providers">AI providers</string>
     <string name="settings_add_provider">Add a provider</string>
     <string name="settings_provider_type">Provider</string>
@@ -151,9 +141,10 @@
     <string name="settings_api_key_optional">Optional for a self-hosted endpoint.</string>
     <string name="settings_api_key_hint">Paste your key</string>
     <string name="settings_save">Save</string>
+    <string name="settings_edit">Edit</string>
+    <string name="settings_clear_log">Clear the log</string>
     <string name="settings_delete">Delete</string>
     <string name="settings_test">Test connection</string>
-    <string name="settings_test_ok">Connected. %1$d models available.</string>
     <string name="settings_test_failed">Failed: %1$s</string>
     <string name="settings_max_tokens">Maximum response length</string>
     <string name="settings_active">Active</string>
@@ -197,13 +188,27 @@
     <string name="settings_source">Source code</string>
 
     <!-- Shared -->
-    <string name="action_close">Close</string>
-    <string name="action_copy">Copy</string>
-    <string name="action_copied">Copied</string>
     <string name="action_confirm">Confirm</string>
     <string name="action_cancel">Cancel</string>
-    <string name="action_retry">Try again</string>
-    <string name="action_more">More options</string>
     <string name="tier_badge_full">Full</string>
     <string name="tier_badge_lightweight">Lightweight</string>
+
+    <!-- Counted quantities. Each locale supplies only the categories its
+         grammar actually has; Android picks the right one at runtime. -->
+    <plurals name="chat_iteration_limit">
+        <item quantity="one">The agent stopped after %1$d turn. Send another message to continue.</item>
+        <item quantity="other">The agent stopped after %1$d turns. Send another message to continue.</item>
+    </plurals>
+    <plurals name="diff_apply">
+        <item quantity="one">Apply %1$d change</item>
+        <item quantity="other">Apply %1$d changes</item>
+    </plurals>
+    <plurals name="checkpoints_file_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <plurals name="settings_test_ok">
+        <item quantity="one">Connected. %1$d model available.</item>
+        <item quantity="other">Connected. %1$d models available.</item>
+    </plurals>
 </resources>

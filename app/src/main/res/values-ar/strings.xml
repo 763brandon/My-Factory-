@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic. Also the right-to-left check: layouts use start/end throughout,
+     so this locale should mirror without any layout change. -->
+<resources>
+    <string name="app_name">Forge</string>
+
+    <string name="nav_chat">الوكيل</string>
+    <string name="nav_files">الملفات</string>
+    <string name="nav_terminal">الطرفية</string>
+    <string name="nav_preview">المعاينة</string>
+    <string name="nav_settings">الإعدادات</string>
+    <string name="nav_checkpoints">نقاط الاستعادة</string>
+    <string name="nav_back">رجوع</string>
+
+    <string name="projects_title">مشاريعك</string>
+    <string name="projects_empty_title">لا توجد مشاريع بعد</string>
+    <string name="projects_empty_body">أنشئ مشروعًا لتبدأ تحرير الشيفرة مع الوكيل.</string>
+    <string name="projects_new">مشروع جديد</string>
+    <string name="projects_name_hint">اسم المشروع</string>
+    <string name="projects_create">إنشاء</string>
+    <string name="projects_cancel">إلغاء</string>
+    <string name="projects_delete">حذف المشروع</string>
+    <string name="projects_delete_confirm">حذف «%1$s» وكل ملفاته؟ لا يمكن التراجع عن هذا.</string>
+    <string name="projects_opened_never">لم يُفتح قط</string>
+
+    <string name="chat_input_hint">اطلب من الوكيل تعديل شيفرتك</string>
+    <string name="chat_send">إرسال</string>
+    <string name="chat_stop">إيقاف</string>
+    <string name="chat_empty_title">ابدأ محادثة</string>
+    <string name="chat_empty_body">يستطيع الوكيل قراءة مشروعك واقتراح التعديلات وتنفيذ الأوامر. أنت توافق على كل تغيير قبل حدوثه.</string>
+    <string name="chat_no_provider_title">لم يُضبط أي مزوّد ذكاء اصطناعي</string>
+    <string name="chat_no_provider_body">أضف مزوّدًا ومفتاح واجهة برمجة في الإعدادات للبدء.</string>
+    <string name="chat_open_settings">فتح الإعدادات</string>
+    <string name="chat_thinking">جارٍ العمل…</string>
+    <string name="chat_tool_running">تنفيذ %1$s</string>
+    <string name="chat_tool_done">انتهى %1$s</string>
+    <string name="chat_tool_failed">أخفق %1$s</string>
+    <string name="chat_tool_rejected">رفضت %1$s</string>
+    <string name="chat_error_auth">رفض المزوّد مفتاحك. تحقق منه في الإعدادات.</string>
+    <string name="chat_error_rate_limit">تم تقييد المعدل من المزوّد. حاول بعد قليل.</string>
+    <string name="chat_error_network">تعذّر الوصول إلى المزوّد. تحقق من اتصالك.</string>
+    <string name="chat_error_generic">حدث خطأ: %1$s</string>
+    <string name="chat_destination">الإرسال إلى %1$s</string>
+    <string name="chat_tokens">%1$d وارد / %2$d صادر</string>
+
+    <string name="approval_title">هل توافق على هذا الإجراء؟</string>
+    <string name="approval_write_subtitle">يريد الوكيل تعديل ملف.</string>
+    <string name="approval_command_subtitle">يريد الوكيل تنفيذ أمر.</string>
+    <string name="approval_delete_subtitle">يريد الوكيل حذف ملف.</string>
+    <string name="approval_allow">السماح مرة واحدة</string>
+    <string name="approval_allow_session">السماح خلال هذه الجلسة</string>
+    <string name="approval_deny">رفض</string>
+    <string name="approval_no_preview">لا تتوفر معاينة لهذا الإجراء.</string>
+    <string name="approval_runs_in">يُنفَّذ في: %1$s</string>
+
+    <string name="files_title">الملفات</string>
+    <string name="files_empty">هذا المجلد فارغ.</string>
+    <string name="files_parent">مستوى للأعلى</string>
+    <string name="files_new_file">ملف جديد</string>
+    <string name="files_new_folder">مجلد جديد</string>
+    <string name="files_delete">حذف</string>
+    <string name="files_rename">إعادة تسمية</string>
+    <string name="editor_save">حفظ</string>
+    <string name="editor_saved">تم الحفظ</string>
+    <string name="editor_unsaved">تغييرات غير محفوظة</string>
+    <string name="editor_binary">هذا ملف ثنائي ولا يمكن تحريره هنا.</string>
+    <string name="editor_too_large">حجم هذا الملف %1$s، وهو يتجاوز حد التحرير على هذا الجهاز. فُتح للقراءة فقط.</string>
+    <string name="editor_line_column">السطر %1$d، العمود %2$d</string>
+    <string name="editor_discard_title">تجاهل التغييرات؟</string>
+    <string name="editor_discard_body">لديك تعديلات غير محفوظة في %1$s.</string>
+    <string name="editor_discard">تجاهل</string>
+    <string name="editor_keep_editing">متابعة التحرير</string>
+
+    <string name="diff_title">مراجعة التغييرات</string>
+    <string name="diff_summary">%1$d مضافة، %2$d محذوفة</string>
+    <string name="diff_hunk">التغيير %1$d من %2$d</string>
+    <string name="diff_accept_hunk">قبول</string>
+    <string name="diff_reject_hunk">رفض</string>
+    <string name="diff_accept_all">قبول الكل</string>
+    <string name="diff_reject_all">رفض الكل</string>
+    <string name="diff_no_changes">لا توجد تغييرات للمراجعة.</string>
+
+    <string name="checkpoints_title">نقاط الاستعادة</string>
+    <string name="checkpoints_empty">لا توجد نقاط استعادة بعد. تُؤخذ واحدة تلقائيًا قبل كتابة الوكيل.</string>
+    <string name="checkpoints_create">أخذ نقطة استعادة</string>
+    <string name="checkpoints_restore">استعادة</string>
+    <string name="checkpoints_delete">حذف</string>
+    <string name="checkpoints_automatic">تلقائية</string>
+    <string name="checkpoints_restore_confirm">استعادة «%1$s»؟ ستُفقد الملفات التي تغيّرت بعدها.</string>
+    <string name="checkpoints_storage">تستهلك نقاط الاستعادة %1$s</string>
+
+    <string name="terminal_unavailable_title">لا توجد طرفية على هذا الجهاز</string>
+    <string name="terminal_start">بدء الصدفة</string>
+    <string name="terminal_stop">إيقاف</string>
+    <string name="terminal_interrupt">مقاطعة</string>
+    <string name="terminal_exited">خرجت الصدفة بالرمز %1$d.</string>
+    <string name="terminal_input_hint">اكتب أمرًا</string>
+    <string name="terminal_setup_title">إعداد بيئة لينكس</string>
+    <string name="terminal_setup_body">يحتاج %1$s إلى تنزيل %2$s ونحو %3$s من المساحة.</string>
+    <string name="terminal_setup_start">تنزيل وتثبيت</string>
+    <string name="terminal_downloading">جارٍ التنزيل… %1$s من %2$s</string>
+    <string name="terminal_verifying">جارٍ التحقق من التنزيل…</string>
+    <string name="terminal_extracting">جارٍ فك الضغط…</string>
+    <string name="terminal_setup_failed">أخفق الإعداد: %1$s</string>
+    <string name="terminal_setup_unprovisioned">لا تتضمن هذه النسخة صورة لينكس موثّقة. راجع docs/NATIVE_BINARIES.md.</string>
+    <string name="terminal_busybox_note">أوامر الملفات الأساسية متاحة. مديرو الحزم وNode وGit غير متاحين.</string>
+
+    <string name="preview_unavailable_title">المعاينة غير متاحة</string>
+    <string name="preview_refresh">تحديث</string>
+    <string name="preview_url_hint">http://127.0.0.1:3000</string>
+    <string name="preview_serve_project">خدمة هذا المشروع</string>
+    <string name="preview_stop_serving">إيقاف الخدمة</string>
+    <string name="preview_serving_at">يُقدَّم على %1$s</string>
+    <string name="preview_only_local">لا يمكن فتح سوى عناوين هذا الجهاز هنا.</string>
+    <string name="preview_load_failed">تعذّر تحميل %1$s</string>
+
+    <string name="settings_providers">مزوّدو الذكاء الاصطناعي</string>
+    <string name="settings_add_provider">إضافة مزوّد</string>
+    <string name="settings_provider_type">المزوّد</string>
+    <string name="settings_provider_name">الاسم</string>
+    <string name="settings_base_url">عنوان الخادم</string>
+    <string name="settings_model">النموذج</string>
+    <string name="settings_api_key">مفتاح الواجهة</string>
+    <string name="settings_api_key_saved">يوجد مفتاح محفوظ لهذا المزوّد.</string>
+    <string name="settings_api_key_optional">اختياري للخادم الذاتي.</string>
+    <string name="settings_api_key_hint">الصق مفتاحك</string>
+    <string name="settings_save">حفظ</string>
+    <string name="settings_edit">تعديل</string>
+    <string name="settings_clear_log">مسح السجل</string>
+    <string name="settings_delete">حذف</string>
+    <string name="settings_test">اختبار الاتصال</string>
+    <string name="settings_test_failed">أخفق: %1$s</string>
+    <string name="settings_max_tokens">أقصى طول للرد</string>
+    <string name="settings_active">نشط</string>
+    <string name="settings_set_active">استخدام هذا المزوّد</string>
+
+    <string name="settings_device">هذا الجهاز</string>
+    <string name="settings_tier">مستوى الأداء</string>
+    <string name="settings_tier_auto">تلقائي</string>
+    <string name="settings_tier_full">كامل</string>
+    <string name="settings_tier_lightweight">خفيف</string>
+    <string name="settings_tier_explanation">يستهلك المستوى الخفيف ذاكرة أقل ويستخدم صورة لينكس أصغر. فرض المستوى الكامل على جهاز محدود الذاكرة قد يدفع النظام إلى إغلاق التطبيق.</string>
+    <string name="settings_abi">بنية المعالج</string>
+    <string name="settings_ram">الذاكرة</string>
+    <string name="settings_storage">المساحة الحرة</string>
+    <string name="settings_linux_runtime">بيئة لينكس</string>
+    <string name="settings_detection_notes">ملاحظات الكشف</string>
+
+    <string name="settings_privacy">الخصوصية والأمان</string>
+    <string name="settings_auto_checkpoint">نقطة استعادة قبل كتابة الوكيل</string>
+    <string name="settings_auto_checkpoint_body">تحفظ نسخة يمكنك الرجوع إليها.</string>
+    <string name="settings_session_approvals">السماح بموافقات «هذه الجلسة»</string>
+    <string name="settings_session_approvals_body">أوقفه لتُسأل قبل كل إجراء.</string>
+    <string name="settings_diagnostics">سجل التشخيص المحلي</string>
+    <string name="settings_diagnostics_body">معطّل افتراضيًا. يكتب ملف سجل على هذا الجهاز فقط. لا يُرفع أي شيء.</string>
+    <string name="settings_audit_log">سجل النشاط</string>
+    <string name="settings_audit_log_body">كل تعديل ملف وأمر وطلب شبكة.</string>
+    <string name="settings_clear_keys">حذف كل مفاتيح الواجهة المحفوظة</string>
+    <string name="settings_keystore_warning">تعذّر على هذا الجهاز حفظ المفتاح في مخزنه الآمن: %1$s</string>
+
+    <string name="settings_appearance">المظهر</string>
+    <string name="settings_language">اللغة</string>
+    <string name="settings_language_system">اتباع النظام</string>
+    <string name="settings_editor_font">حجم نص المحرّر</string>
+    <string name="settings_soft_wrap">لف الأسطر الطويلة</string>
+    <string name="settings_line_numbers">إظهار أرقام الأسطر</string>
+
+    <string name="settings_about">حول</string>
+    <string name="settings_version">الإصدار %1$s</string>
+    <string name="settings_licence">مفتوح المصدر بموجب رخصة MIT.</string>
+    <string name="settings_disclaimer">غير تابع لأي مزوّد ذكاء اصطناعي ولا معتمد ولا مموّل منه. أسماء المزوّدين علامات تجارية لأصحابها.</string>
+    <string name="settings_source">الشيفرة المصدرية</string>
+
+    <string name="action_confirm">تأكيد</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="tier_badge_full">كامل</string>
+    <string name="tier_badge_lightweight">خفيف</string>
+
+    <plurals name="chat_iteration_limit">
+        <item quantity="zero">توقف الوكيل. أرسل رسالة أخرى للمتابعة.</item>
+        <item quantity="one">توقف الوكيل بعد دورة واحدة. أرسل رسالة أخرى للمتابعة.</item>
+        <item quantity="two">توقف الوكيل بعد دورتين. أرسل رسالة أخرى للمتابعة.</item>
+        <item quantity="few">توقف الوكيل بعد %1$d دورات. أرسل رسالة أخرى للمتابعة.</item>
+        <item quantity="many">توقف الوكيل بعد %1$d دورة. أرسل رسالة أخرى للمتابعة.</item>
+        <item quantity="other">توقف الوكيل بعد %1$d دورة. أرسل رسالة أخرى للمتابعة.</item>
+    </plurals>
+    <plurals name="diff_apply">
+        <item quantity="zero">لا تغييرات للتطبيق</item>
+        <item quantity="one">تطبيق تغيير واحد</item>
+        <item quantity="two">تطبيق تغييرين</item>
+        <item quantity="few">تطبيق %1$d تغييرات</item>
+        <item quantity="many">تطبيق %1$d تغييرًا</item>
+        <item quantity="other">تطبيق %1$d تغيير</item>
+    </plurals>
+    <plurals name="checkpoints_file_count">
+        <item quantity="zero">لا توجد ملفات</item>
+        <item quantity="one">ملف واحد</item>
+        <item quantity="two">ملفان</item>
+        <item quantity="few">%1$d ملفات</item>
+        <item quantity="many">%1$d ملفًا</item>
+        <item quantity="other">%1$d ملف</item>
+    </plurals>
+    <plurals name="settings_test_ok">
+        <item quantity="zero">تم الاتصال. لا نماذج متاحة.</item>
+        <item quantity="one">تم الاتصال. نموذج واحد متاح.</item>
+        <item quantity="two">تم الاتصال. نموذجان متاحان.</item>
+        <item quantity="few">تم الاتصال. %1$d نماذج متاحة.</item>
+        <item quantity="many">تم الاتصال. %1$d نموذجًا متاحًا.</item>
+        <item quantity="other">تم الاتصال. %1$d نموذج متاح.</item>
+    </plurals>
+</resources>

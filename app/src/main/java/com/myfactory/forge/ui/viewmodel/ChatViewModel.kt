@@ -48,7 +48,26 @@ sealed interface ChatEntry {
     ) : ChatEntry
 
     data class Notice(override val id: String, val text: String, val isError: Boolean) : ChatEntry
+
+    /**
+     * Carries the count rather than a formatted sentence, so the screen can
+     * resolve the right plural for the user's language. Arabic needs six
+     * forms; a pre-built English string has one.
+     */
+    data class IterationLimit(override val id: String, val limit: Int) : ChatEntry
+
+    /**
+     * An error, as a kind plus a detail rather than a finished sentence, so
+     * the screen renders it in the user's language.
+     */
+    data class Failure(
+        override val id: String,
+        val kind: FailureKind,
+        val detail: String,
+    ) : ChatEntry
 }
+
+enum class FailureKind { AUTH, RATE_LIMIT, NETWORK, OTHER }
 
 enum class ToolStatus { RUNNING, SUCCEEDED, FAILED, REJECTED }
 
@@ -273,18 +292,18 @@ class ChatViewModel(
         }
 
         is AgentEvent.Failed -> {
-            appendEntry(ChatEntry.Notice(newId(), describe(event.error), isError = true))
+            appendEntry(
+                ChatEntry.Failure(
+                    id = newId(),
+                    kind = classify(event.error),
+                    detail = event.error.message.orEmpty(),
+                ),
+            )
             streamingId
         }
 
         is AgentEvent.IterationLimitReached -> {
-            appendEntry(
-                ChatEntry.Notice(
-                    newId(),
-                    "The agent stopped after ${event.limit} turns. Send another message to continue.",
-                    isError = false,
-                ),
-            )
+            appendEntry(ChatEntry.IterationLimit(newId(), event.limit))
             streamingId
         }
 
@@ -328,11 +347,11 @@ class ChatViewModel(
         }
     }
 
-    private fun describe(error: AiError): String = when (error) {
-        is AiError.Auth -> "The provider rejected your API key. Check it in Settings."
-        is AiError.RateLimited -> "Rate limited by the provider. Try again shortly."
-        is AiError.Network -> "Could not reach the provider. Check your connection."
-        else -> error.message ?: "Something went wrong."
+    private fun classify(error: AiError): FailureKind = when (error) {
+        is AiError.Auth -> FailureKind.AUTH
+        is AiError.RateLimited -> FailureKind.RATE_LIMIT
+        is AiError.Network -> FailureKind.NETWORK
+        else -> FailureKind.OTHER
     }
 
     private fun appendEntry(entry: ChatEntry) {

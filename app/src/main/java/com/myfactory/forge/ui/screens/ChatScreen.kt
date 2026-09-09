@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -54,6 +55,7 @@ import com.myfactory.forge.ui.theme.LocalCodeColors
 import com.myfactory.forge.ui.viewmodel.ChatEntry
 import com.myfactory.forge.ui.viewmodel.ChatUiState
 import com.myfactory.forge.ui.viewmodel.ChatViewModel
+import com.myfactory.forge.ui.viewmodel.FailureKind
 import com.myfactory.forge.ui.viewmodel.ToolStatus
 
 @Composable
@@ -112,14 +114,31 @@ fun ChatScreen(
         }
 
         state.activeProvider?.let { provider ->
-            Text(
-                text = stringResource(R.string.chat_destination, provider.destinationHost),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-            )
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // Naming the destination on every screen is the point: the
+                // user should never have to guess where their code went.
+                Text(
+                    text = stringResource(R.string.chat_destination, provider.destinationHost),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (state.inputTokens > 0 || state.outputTokens > 0) {
+                    Text(
+                        text = stringResource(
+                            R.string.chat_tokens,
+                            state.inputTokens,
+                            state.outputTokens,
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         Composer(
@@ -171,6 +190,43 @@ private fun ChatEntryRow(entry: ChatEntry) {
         )
 
         is ChatEntry.Tool -> ToolRow(entry)
+
+        is ChatEntry.IterationLimit -> Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { liveRegion = LiveRegionMode.Polite },
+        ) {
+            Text(
+                text = pluralStringResource(
+                    R.plurals.chat_iteration_limit,
+                    entry.limit,
+                    entry.limit,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(12.dp),
+            )
+        }
+
+        is ChatEntry.Failure -> Surface(
+            color = MaterialTheme.colorScheme.errorContainer,
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { liveRegion = LiveRegionMode.Assertive },
+        ) {
+            Text(
+                text = when (entry.kind) {
+                    FailureKind.AUTH -> stringResource(R.string.chat_error_auth)
+                    FailureKind.RATE_LIMIT -> stringResource(R.string.chat_error_rate_limit)
+                    FailureKind.NETWORK -> stringResource(R.string.chat_error_network)
+                    FailureKind.OTHER -> stringResource(R.string.chat_error_generic, entry.detail)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(12.dp),
+            )
+        }
 
         is ChatEntry.Notice -> Surface(
             color = if (entry.isError) {
@@ -243,10 +299,21 @@ private fun ToolRow(entry: ChatEntry.Tool) {
         ToolStatus.REJECTED -> Icons.Default.Error to MaterialTheme.colorScheme.onSurfaceVariant
     }
 
+    val statusLabel = when (entry.status) {
+        ToolStatus.RUNNING -> stringResource(R.string.chat_tool_running, entry.summary)
+        ToolStatus.SUCCEEDED -> stringResource(R.string.chat_tool_done, entry.summary)
+        ToolStatus.FAILED -> stringResource(R.string.chat_tool_failed, entry.summary)
+        ToolStatus.REJECTED -> stringResource(R.string.chat_tool_rejected, entry.summary)
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         shape = RoundedCornerShape(10.dp),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            // Colour is never the only signal: a screen reader and a
+            // colour-blind user both get the status in words.
+            .semantics { contentDescription = statusLabel },
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
@@ -307,23 +374,21 @@ private fun Composer(
             )
 
             if (state.isRunning) {
-                IconButton(
-                    onClick = onStop,
-                    modifier = Modifier.semantics {
-                        contentDescription = "Stop the agent"
-                    },
-                ) {
-                    Icon(Icons.Default.Stop, contentDescription = null)
+                IconButton(onClick = onStop) {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = stringResource(R.string.chat_stop),
+                    )
                 }
             } else {
                 IconButton(
                     onClick = onSend,
                     enabled = state.canSend && draft.isNotBlank(),
-                    modifier = Modifier.semantics {
-                        contentDescription = "Send the message"
-                    },
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = stringResource(R.string.chat_send),
+                    )
                 }
             }
         }

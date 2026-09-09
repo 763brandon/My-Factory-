@@ -51,7 +51,6 @@ import com.myfactory.forge.ui.components.EmptyState
  * JavaScript itself is on, because a preview that cannot run scripts is not a
  * preview of a web app.
  */
-@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun PreviewScreen(
     capabilities: Capabilities,
@@ -103,11 +102,11 @@ fun PreviewScreen(
                                 blockedNotice = true
                             }
                         },
-                        modifier = Modifier.semantics {
-                            contentDescription = "Reload the preview"
-                        },
                     ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.preview_refresh),
+                        )
                     }
                 }
 
@@ -177,6 +176,11 @@ fun PreviewScreen(
     }
 }
 
+// Scripting is on deliberately: a preview that cannot run JavaScript is not
+// a preview of a web app. The exposure is bounded by everything below it plus
+// the loopback-only navigation guard, so the page can only ever be one the
+// user is already serving from their own device.
+@SuppressLint("SetJavaScriptEnabled")
 private fun configureSandbox(settings: WebSettings) {
     settings.javaScriptEnabled = true
     settings.domStorageEnabled = true
