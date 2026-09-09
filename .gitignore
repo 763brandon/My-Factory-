@@ -16,3 +16,6 @@ local.properties
 !debug.keystore
 /app/release/
 /android-sdk/
+
+# Kotlin compiler session data
+.kotlin/
