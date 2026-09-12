@@ -48,6 +48,8 @@ that configuration.
 | Workspace path safety | Verified | 17 unit tests covering traversal, symlink escape, absolute paths, null bytes |
 | Tar extractor, checkpoints, preview server | Verified | 33 unit tests, including tar-slip, loopback-only binding, and stop-then-restart |
 | Syntax highlighter and loopback URL guard | Verified | 14 unit tests |
+| Every on-screen control | Verified | 60 Compose tests that press the real buttons on eight screens, run on the JVM under Robolectric so they execute on every push |
+| Conversation survives a restart | Verified | 9 unit tests on the message round-trip, tool calls and results included |
 | Android 7 API floor in `:core` | Verified | compiled classes scanned for `java.time` and `java.nio.file` |
 | Native PTY builds for all four ABIs | Verified | `.so` inspected per ABI; all six JNI symbols exported |
 | Per-ABI APK packaging | Verified | each split APK contains only its own `libforgepty.so` |
@@ -56,7 +58,7 @@ that configuration.
 | WebView preview rendering | Untested | logic tested; rendering needs a device |
 | Keystore encryption | Untested | instrumented tests written; the keystore only exists on a device |
 
-Total: **174 automated tests, all passing** (160 in `:core`, 14 in `:app`).
+Total: **250 automated tests, all passing** (160 in `:core`, 90 in `:app`).
 Android lint reports no correctness, internationalisation or accessibility
 findings; what remains are version-currency notices on pinned dependencies.
 
@@ -72,6 +74,8 @@ floor is uniform at Android 7, so tiers exist only to protect weak hardware.
 | Live syntax highlighting | Yes | Off while typing |
 | Diff review, per hunk | Yes | Yes |
 | Revert individual hunks since a checkpoint | Yes | Yes |
+| Conversation kept across restarts | Yes | Yes |
+| Agent keeps running with the screen off | Yes | Yes |
 | Checkpoints and rollback | Yes | Yes |
 | Agent turns per request | 25 | 12 |
 | Linux userspace | Ubuntu 22.04 under PRoot | Alpine under PRoot |

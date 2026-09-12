@@ -115,6 +115,9 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        // Compose tests resolve strings, themes and drawables, so the unit
+        // test JVM needs the real merged resources rather than stubs.
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
@@ -146,7 +149,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.webkit)
     implementation(libs.androidx.documentfile)
     implementation(libs.coroutines.android)
@@ -163,11 +165,16 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
-    // Robolectric supplies android.net.Uri so the loopback guard can be
-    // tested without a device.
+    // Robolectric lets the Compose tests press real buttons on the JVM. Without
+    // it these would be instrumented tests, which need hardware and so would
+    // not run in CI on every push - which is exactly how a screen full of
+    // dead controls goes unnoticed.
     testImplementation(libs.robolectric)
     testImplementation(composeBom)
     testImplementation(libs.compose.ui.graphics)
+    testImplementation(libs.compose.ui.test.junit4)
+    testImplementation(libs.compose.ui.test.manifest)
+    testImplementation(libs.androidx.test.junit)
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.androidx.test.junit)

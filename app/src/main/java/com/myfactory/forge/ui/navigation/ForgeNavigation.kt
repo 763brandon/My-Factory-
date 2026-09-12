@@ -27,14 +27,3 @@ enum class Destination(
             entries.firstOrNull { it.route == route } ?: CHAT
     }
 }
-
-object Routes {
-    const val PROJECTS = "projects"
-    const val WORKSPACE = "workspace"
-    const val EDITOR = "editor"
-    const val CHECKPOINTS = "checkpoints"
-    const val AUDIT = "audit"
-    const val PROVIDER_EDIT = "provider"
-
-    fun editor(path: String): String = "$EDITOR?path=$path"
-}

@@ -42,7 +42,14 @@ import com.myfactory.forge.ui.components.EmptyState
 @Composable
 fun DiffReviewScreen(
     patches: List<FilePatch>,
-    onApply: (Map<String, Set<Int>>) -> Unit,
+    /**
+     * Receives, per file path, the hunk indices to REVERT - that is, the ones
+     * the user rejected. The caller feeds this straight to
+     * [com.myfactory.forge.core.diff.WorkspaceDiff.revert], so sending the
+     * kept hunks instead would undo precisely the work the user chose to
+     * keep.
+     */
+    onApply: (rejectedHunks: Map<String, Set<Int>>) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -66,6 +73,14 @@ fun DiffReviewScreen(
     }
     val keptCount = selection.values.sumOf { it.size }
     val totalCount = patches.sumOf { it.hunks.size }
+
+    // The complement of the selection: what the user unticked, and therefore
+    // what gets reverted. Computed here so the screen hands the caller the
+    // set it actually acts on rather than its inverse.
+    val rejected: Map<String, Set<Int>> = patches.associate { patch ->
+        val kept = selection[patch.displayPath].orEmpty()
+        patch.displayPath to patch.hunks.indices.filterNot { it in kept }.toSet()
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         Surface(tonalElevation = 2.dp) {
@@ -124,7 +139,7 @@ fun DiffReviewScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Button(
-                    onClick = { onApply(selection) },
+                    onClick = { onApply(rejected) },
                     enabled = keptCount < totalCount,
                 ) {
                     Text(

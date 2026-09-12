@@ -1,7 +1,12 @@
 package com.myfactory.forge
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Row
@@ -19,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -44,6 +51,7 @@ import com.myfactory.forge.core.files.WorkspaceFs
 import com.myfactory.forge.core.session.AuditCategory
 import com.myfactory.forge.core.session.Project
 import com.myfactory.forge.di.AppContainer
+import com.myfactory.forge.platform.AgentForegroundService
 import com.myfactory.forge.runtime.proot.BootstrapProgress
 import com.myfactory.forge.runtime.proot.LinuxRuntime
 import com.myfactory.forge.runtime.proot.RootfsBootstrapper
@@ -212,6 +220,44 @@ private fun ForgeApp(container: AppContainer) {
         }
     }
 
+    val chatState by chatViewModel.state.collectAsState()
+
+    // A multi-minute agent turn is frozen the moment the screen sleeps unless
+    // the process is in the foreground. Tie the service to the run, so it
+    // lives for exactly as long as the work does.
+    LaunchedEffect(chatState.isRunning) {
+        if (chatState.isRunning) {
+            AgentForegroundService.start(context, context.getString(R.string.chat_thinking))
+        } else {
+            AgentForegroundService.stop(context)
+        }
+    }
+
+    // Release it if the screen leaves the composition mid-turn, so a stale
+    // notification cannot outlive the app.
+    DisposableEffect(Unit) {
+        onDispose { AgentForegroundService.stop(context) }
+    }
+
+    // Android 13 added a runtime permission for notifications. Without it the
+    // service still runs, just silently, so ask once and carry on either way
+    // rather than gating the agent behind it.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val notificationPermission = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { /* Granted or not, the agent runs. */ }
+
+        LaunchedEffect(Unit) {
+            val granted = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
     LaunchedEffect(showCheckpoints, project.id) {
         if (showCheckpoints) {
             container.repository.observeCheckpoints(project.id).collect { checkpoints = it }
@@ -301,6 +347,10 @@ private fun ForgeApp(container: AppContainer) {
             .fillMaxSize()
             .padding(padding)
 
+        // Overlays are matched before the tabs, so selecting a tab can
+        // never shadow an open sub-screen. The inner `when` is exhaustive
+        // over the Destination enum, so adding a tab without routing it
+        // fails to compile rather than showing a blank screen.
         when {
             editorPath != null -> EditorScreen(
                 workspace = workspace,
@@ -370,93 +420,6 @@ private fun ForgeApp(container: AppContainer) {
                 modifier = content,
             )
 
-            destination == Destination.CHAT -> ChatScreen(
-                viewModel = chatViewModel,
-                allowSessionApprovals = settings.allowSessionApprovals,
-                onOpenSettings = { destination = Destination.SETTINGS },
-                modifier = content,
-            )
-
-            destination == Destination.FILES -> FilesScreen(
-                workspace = workspace,
-                onOpenFile = { editorPath = it },
-                onReviewChanges = {
-                    scope.launch {
-                        val newest = container.repository
-                            .observeCheckpoints(project.id).first().firstOrNull()
-                        // Reading a checkpoint zip and diffing the tree is
-                        // the heaviest operation in the app.
-                        reviewPatches = if (newest == null) {
-                            emptyList()
-                        } else {
-                            withContext(Dispatchers.IO) {
-                                runCatching {
-                                    WorkspaceDiff.against(
-                                        workspace,
-                                        File(
-                                            File(container.checkpointsRoot, project.id),
-                                            newest.id + ".zip",
-                                        ),
-                                    )
-                                }.getOrDefault(emptyList())
-                            }
-                        }
-                    }
-                },
-                modifier = content,
-            )
-
-            destination == Destination.TERMINAL -> TerminalScreen(
-                capabilities = capabilities,
-                availability = availability,
-                session = terminalSession,
-                bootstrapProgress = bootstrapProgress,
-                onStartShell = {
-                    terminalSession = startShell(scope, linuxRuntime, availability, projectRoot)
-                },
-                onStopShell = {
-                    terminalSession?.terminate()
-                    terminalSession = null
-                },
-                onInterrupt = { terminalSession?.interrupt() },
-                onSendLine = { line ->
-                    terminalSession?.write(line + 10.toChar())
-                },
-                onBootstrap = {
-                    val image = (availability as? RuntimeAvailability.NeedsBootstrap)?.image
-                    if (image != null) {
-                        scope.launch {
-                            RootfsBootstrapper(linuxRuntime, container.httpClient)
-                                .install(image)
-                                .collect { progress ->
-                                    bootstrapProgress = progress
-                                    if (progress is BootstrapProgress.Finished) {
-                                        availability = linuxRuntime.availability()
-                                    }
-                                }
-                        }
-                    }
-                },
-                modifier = content,
-            )
-
-            destination == Destination.PREVIEW -> PreviewScreen(
-                capabilities = capabilities,
-                initialUrl = "http://127.0.0.1:3000",
-                servingUrl = servingUrl,
-                onStartServing = {
-                    scope.launch {
-                        withContext(Dispatchers.IO) { runCatching { previewServer.start() } }
-                            .onSuccess { servingUrl = previewServer.baseUrl() }
-                    }
-                },
-                onStopServing = {
-                    previewServer.stop()
-                    servingUrl = null
-                },
-                modifier = content,
-            )
-
             addingProvider || editingProvider != null -> {
                 val existing = editingProvider
                 ProviderEditScreen(
@@ -514,49 +477,138 @@ private fun ForgeApp(container: AppContainer) {
                 modifier = content,
             )
 
-            else -> SettingsScreen(
-                settings = settings,
-                capabilities = capabilities,
-                profile = container.deviceProfile,
-                providers = providers,
-                activeProviderId = settings.activeProviderConfigId,
-                versionName = BuildConfig.VERSION_NAME,
-                keystoreWarning = container.secretStore.lastError,
-                onUpdateSettings = { transform -> container.settings.update(transform) },
-                onAddProvider = { addingProvider = true },
-                onEditProvider = { editingProvider = it },
-                onSetActiveProvider = { config ->
-                    container.settings.update { it.copy(activeProviderConfigId = config.id) }
-                    chatViewModel.refreshProvider()
-                },
-                onOpenAuditLog = { showAudit = true },
-                onClearKeys = { container.secretStore.clearAll() },
-                onSetLanguage = { tag ->
-                    container.settings.update { it.copy(languageTag = tag) }
-                    // AppCompatDelegate applies a per-app locale from API 21
-                    // through the support library, and hands off to the
-                    // platform LocaleManager on API 33+. Recreation is
-                    // automatic; nothing here restarts the activity.
-                    androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
-                        if (tag == null) {
-                            androidx.core.os.LocaleListCompat.getEmptyLocaleList()
-                        } else {
-                            androidx.core.os.LocaleListCompat.forLanguageTags(tag)
-                        },
-                    )
-                },
-                onOpenSource = {
-                    runCatching {
-                        context.startActivity(
-                            android.content.Intent(
-                                android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse(SOURCE_URL),
-                            ),
+            else -> when (destination) {
+                Destination.CHAT -> ChatScreen(
+                    viewModel = chatViewModel,
+                    allowSessionApprovals = settings.allowSessionApprovals,
+                    onOpenSettings = { destination = Destination.SETTINGS },
+                    modifier = content,
+                )
+
+                Destination.FILES -> FilesScreen(
+                    workspace = workspace,
+                    onOpenFile = { editorPath = it },
+                    onReviewChanges = {
+                        scope.launch {
+                            val newest = container.repository
+                                .observeCheckpoints(project.id).first().firstOrNull()
+                            // Reading a checkpoint zip and diffing the tree is
+                            // the heaviest operation in the app.
+                            reviewPatches = if (newest == null) {
+                                emptyList()
+                            } else {
+                                withContext(Dispatchers.IO) {
+                                    runCatching {
+                                        WorkspaceDiff.against(
+                                            workspace,
+                                            File(
+                                                File(container.checkpointsRoot, project.id),
+                                                newest.id + ".zip",
+                                            ),
+                                        )
+                                    }.getOrDefault(emptyList())
+                                }
+                            }
+                        }
+                    },
+                    modifier = content,
+                )
+
+                Destination.TERMINAL -> TerminalScreen(
+                    capabilities = capabilities,
+                    availability = availability,
+                    session = terminalSession,
+                    bootstrapProgress = bootstrapProgress,
+                    onStartShell = {
+                        terminalSession = startShell(scope, linuxRuntime, availability, projectRoot)
+                    },
+                    onStopShell = {
+                        terminalSession?.terminate()
+                        terminalSession = null
+                    },
+                    onInterrupt = { terminalSession?.interrupt() },
+                    onSendLine = { line ->
+                        terminalSession?.write(line + 10.toChar())
+                    },
+                    onBootstrap = {
+                        val image = (availability as? RuntimeAvailability.NeedsBootstrap)?.image
+                        if (image != null) {
+                            scope.launch {
+                                RootfsBootstrapper(linuxRuntime, container.httpClient)
+                                    .install(image)
+                                    .collect { progress ->
+                                        bootstrapProgress = progress
+                                        if (progress is BootstrapProgress.Finished) {
+                                            availability = linuxRuntime.availability()
+                                        }
+                                    }
+                            }
+                        }
+                    },
+                    modifier = content,
+                )
+
+                Destination.PREVIEW -> PreviewScreen(
+                    capabilities = capabilities,
+                    initialUrl = "http://127.0.0.1:3000",
+                    servingUrl = servingUrl,
+                    onStartServing = {
+                        scope.launch {
+                            withContext(Dispatchers.IO) { runCatching { previewServer.start() } }
+                                .onSuccess { servingUrl = previewServer.baseUrl() }
+                        }
+                    },
+                    onStopServing = {
+                        previewServer.stop()
+                        servingUrl = null
+                    },
+                    modifier = content,
+                )
+
+                Destination.SETTINGS -> SettingsScreen(
+                    settings = settings,
+                    capabilities = capabilities,
+                    profile = container.deviceProfile,
+                    providers = providers,
+                    activeProviderId = settings.activeProviderConfigId,
+                    versionName = BuildConfig.VERSION_NAME,
+                    keystoreWarning = container.secretStore.lastError,
+                    onUpdateSettings = { transform -> container.settings.update(transform) },
+                    onAddProvider = { addingProvider = true },
+                    onEditProvider = { editingProvider = it },
+                    onSetActiveProvider = { config ->
+                        container.settings.update { it.copy(activeProviderConfigId = config.id) }
+                        chatViewModel.refreshProvider()
+                    },
+                    onOpenAuditLog = { showAudit = true },
+                    onClearKeys = { container.secretStore.clearAll() },
+                    onSetLanguage = { tag ->
+                        container.settings.update { it.copy(languageTag = tag) }
+                        // AppCompatDelegate applies a per-app locale from API 21
+                        // through the support library, and hands off to the
+                        // platform LocaleManager on API 33+. Recreation is
+                        // automatic; nothing here restarts the activity.
+                        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                            if (tag == null) {
+                                androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+                            } else {
+                                androidx.core.os.LocaleListCompat.forLanguageTags(tag)
+                            },
                         )
-                    }
-                },
-                modifier = content,
-            )
+                    },
+                    onOpenSource = {
+                        runCatching {
+                            context.startActivity(
+                                android.content.Intent(
+                                    android.content.Intent.ACTION_VIEW,
+                                    android.net.Uri.parse(SOURCE_URL),
+                                ),
+                            )
+                        }
+                    },
+                    modifier = content,
+                )
+            }
         }
     }
 }

@@ -16,6 +16,11 @@ import com.myfactory.forge.core.capability.Capabilities
 import com.myfactory.forge.core.checkpoint.CheckpointManager
 import com.myfactory.forge.core.files.WorkspaceFs
 import com.myfactory.forge.core.session.AuditCategory
+import com.myfactory.forge.core.session.Session
+import com.myfactory.forge.core.session.StoredMessage
+import com.myfactory.forge.core.session.ToolInvocationRecord
+import com.myfactory.forge.core.session.ToolOutcomeStatus
+import com.myfactory.forge.data.ChatPersistence
 import com.myfactory.forge.di.AppContainer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -119,6 +124,89 @@ class ChatViewModel(
         CheckpointManager(workspace, File(container.checkpointsRoot, projectId))
     }
 
+    /**
+     * How many of [agentState]'s messages are already in Room.
+     *
+     * The loop hands back the whole conversation after every turn, so this
+     * marks where the new ones start and the tail is appended rather than
+     * the lot being rewritten each time.
+     */
+    private var persistedMessageCount = 0
+
+    init {
+        restore()
+    }
+
+    /**
+     * Rebuilds the conversation from Room.
+     *
+     * Both views come from the same rows: the agent's own history so it can
+     * carry on mid-thread, and the visible transcript so the user sees what
+     * was said. Persisting the two separately would let them drift.
+     */
+    private fun restore() {
+        viewModelScope.launch {
+            val stored = withContext(Dispatchers.IO) {
+                container.repository.messages(sessionId)
+            }
+            if (stored.isEmpty()) return@launch
+
+            val wire = stored.mapNotNull(ChatPersistence::toChatMessage)
+            agentState = AgentSessionState(messages = wire)
+            persistedMessageCount = wire.size
+            _state.update { it.copy(entries = stored.mapNotNull(::toEntry)) }
+        }
+    }
+
+    /** Renders one stored row as a transcript entry, or null if it has nothing to show. */
+    private fun toEntry(stored: StoredMessage): ChatEntry? = when (stored.role) {
+        com.myfactory.forge.core.session.StoredRole.USER ->
+            ChatEntry.User(stored.id, stored.text)
+
+        com.myfactory.forge.core.session.StoredRole.ASSISTANT ->
+            stored.text.takeIf { it.isNotBlank() }
+                ?.let { ChatEntry.Assistant(stored.id, it, streaming = false) }
+
+        // Tool rows are replayed by the ToolInvocation records instead, which
+        // carry the status and the human-readable summary.
+        else -> null
+    }
+
+    /** Appends whatever the last turn added to the conversation. */
+    private suspend fun persistNewMessages() {
+        val messages = agentState.messages
+        if (messages.size <= persistedMessageCount) return
+
+        val session = Session(
+            id = sessionId,
+            projectId = projectId,
+            title = messages.firstOrNull { it.role == com.myfactory.forge.core.ai.Role.USER }
+                ?.text?.take(60).orEmpty().ifBlank { "Session" },
+            providerConfigId = _state.value.activeProvider?.id,
+            createdAtMillis = System.currentTimeMillis(),
+            updatedAtMillis = System.currentTimeMillis(),
+            totalInputTokens = _state.value.inputTokens,
+            totalOutputTokens = _state.value.outputTokens,
+        )
+
+        withContext(Dispatchers.IO) {
+            // The session row must exist first: messages reference it with a
+            // foreign key that cascades on delete.
+            container.repository.saveSession(session)
+            for (index in persistedMessageCount until messages.size) {
+                container.repository.saveMessage(
+                    ChatPersistence.toStored(
+                        message = messages[index],
+                        id = newId(),
+                        sessionId = sessionId,
+                        createdAtMillis = System.currentTimeMillis() + index,
+                    ),
+                )
+            }
+        }
+        persistedMessageCount = messages.size
+    }
+
     private val gate = object : ApprovalGate {
         override suspend fun request(request: ApprovalRequest): ApprovalDecision {
             val deferred = CompletableDeferred<ApprovalDecision>()
@@ -187,6 +275,9 @@ class ChatViewModel(
                 .flowOn(Dispatchers.IO)
                 .collect { event -> assistantId = handle(event, assistantId) }
 
+            // Written once the turn is over rather than per streamed token,
+            // which would be one database write per character.
+            persistNewMessages()
             _state.update { it.copy(isRunning = false) }
         }
     }

@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.myfactory.forge.R
 import com.myfactory.forge.core.checkpoint.Checkpoint
 import com.myfactory.forge.ui.components.EmptyState
+import com.myfactory.forge.ui.components.TierChip
 import com.myfactory.forge.ui.components.formatBytes
 import java.text.DateFormat
 import java.util.Date
@@ -97,15 +97,8 @@ fun CheckpointsScreen(
                         },
                         leadingContent = {
                             if (checkpoint.automatic) {
-                                AssistChip(
-                                    onClick = {},
-                                    label = {
-                                        Text(
-                                            stringResource(R.string.checkpoints_automatic),
-                                            style = MaterialTheme.typography.labelSmall,
-                                        )
-                                    },
-                                )
+                                // A badge, not a control: see TierChip.
+                                TierChip(stringResource(R.string.checkpoints_automatic))
                             } else {
                                 Icon(Icons.Default.History, contentDescription = null)
                             }

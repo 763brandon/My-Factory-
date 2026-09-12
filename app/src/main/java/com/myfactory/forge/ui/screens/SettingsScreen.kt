@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.myfactory.forge.R
 import com.myfactory.forge.core.ai.ProviderConfig
@@ -313,6 +315,15 @@ private fun SwitchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // The whole row toggles, not just the switch. A bare Switch is a
+            // small target on a phone, and it leaves the label and the
+            // control as separate nodes, so a screen reader announces the
+            // explanation and the switch state without connecting them.
+            .toggleable(
+                value = checked,
+                role = Role.Switch,
+                onValueChange = onChange,
+            )
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -327,7 +338,9 @@ private fun SwitchRow(
                 )
             }
         }
-        Switch(checked = checked, onCheckedChange = onChange)
+        // Null, because the row above owns the toggle semantics; leaving a
+        // handler here would give the row two overlapping targets.
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 
