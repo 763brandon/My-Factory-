@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Forge</string>
+
+    <string name="nav_chat">Wakala</string>
+    <string name="nav_files">Faili</string>
+    <string name="nav_terminal">Terminali</string>
+    <string name="nav_preview">Onyesho</string>
+    <string name="nav_settings">Mipangilio</string>
+    <string name="nav_checkpoints">Hatua za kurejea</string>
+    <string name="nav_back">Rudi</string>
+
+    <string name="projects_title">Miradi yako</string>
+    <string name="projects_empty_title">Hakuna miradi bado</string>
+    <string name="projects_empty_body">Unda mradi ili kuanza kuhariri msimbo pamoja na wakala.</string>
+    <string name="projects_new">Mradi mpya</string>
+    <string name="projects_name_hint">Jina la mradi</string>
+    <string name="projects_create">Unda</string>
+    <string name="projects_cancel">Ghairi</string>
+    <string name="projects_delete">Futa mradi</string>
+    <string name="projects_delete_confirm">Futa “%1$s” pamoja na faili zake zote? Hatua hii haiwezi kutenduliwa.</string>
+    <string name="projects_opened_never">Haijawahi kufunguliwa</string>
+
+    <string name="chat_input_hint">Mwambie wakala abadilishe msimbo wako</string>
+    <string name="chat_send">Tuma</string>
+    <string name="chat_stop">Simamisha</string>
+    <string name="chat_empty_title">Anzisha mazungumzo</string>
+    <string name="chat_empty_body">Wakala anaweza kusoma mradi wako, kupendekeza mabadiliko na kuendesha amri. Wewe unaidhinisha kila badiliko kabla halijafanyika.</string>
+    <string name="chat_no_provider_title">Hakuna mtoa huduma wa AI aliyewekwa</string>
+    <string name="chat_no_provider_body">Ongeza mtoa huduma na ufunguo wa API kwenye mipangilio ili kuanza.</string>
+    <string name="chat_open_settings">Fungua mipangilio</string>
+    <string name="chat_thinking">Inafanya kazi…</string>
+    <string name="chat_tool_running">Inaendesha %1$s</string>
+    <string name="chat_tool_done">%1$s imekamilika</string>
+    <string name="chat_tool_failed">%1$s imeshindwa</string>
+    <string name="chat_tool_rejected">Umekataa %1$s</string>
+    <string name="chat_error_auth">Mtoa huduma amekataa ufunguo wako wa API. Uangalie kwenye mipangilio.</string>
+    <string name="chat_error_rate_limit">Umezuiwa kwa muda na mtoa huduma. Jaribu tena baadaye kidogo.</string>
+    <string name="chat_error_network">Imeshindwa kumfikia mtoa huduma. Angalia muunganisho wako.</string>
+    <string name="chat_error_generic">Hitilafu imetokea: %1$s</string>
+    <string name="chat_destination">Inatuma kwa %1$s</string>
+    <string name="chat_tokens">%1$d ndani / %2$d nje</string>
+
+    <string name="approval_title">Idhinisha hatua hii?</string>
+    <string name="approval_write_subtitle">Wakala anataka kubadilisha faili.</string>
+    <string name="approval_command_subtitle">Wakala anataka kuendesha amri.</string>
+    <string name="approval_delete_subtitle">Wakala anataka kufuta faili.</string>
+    <string name="approval_allow">Ruhusu mara moja</string>
+    <string name="approval_allow_session">Ruhusu kwa kipindi hiki</string>
+    <string name="approval_deny">Kataa</string>
+    <string name="approval_no_preview">Hakuna onyesho la awali kwa hatua hii.</string>
+    <string name="approval_runs_in">Inaendeshwa ndani ya: %1$s</string>
+
+    <string name="files_title">Faili</string>
+    <string name="files_empty">Folda hii haina kitu.</string>
+    <string name="files_parent">Rudi juu ngazi moja</string>
+    <string name="files_new_file">Faili mpya</string>
+    <string name="files_new_folder">Folda mpya</string>
+    <string name="files_delete">Futa</string>
+    <string name="files_rename">Badilisha jina</string>
+    <string name="editor_save">Hifadhi</string>
+    <string name="editor_saved">Imehifadhiwa</string>
+    <string name="editor_unsaved">Mabadiliko hayajahifadhiwa</string>
+    <string name="editor_binary">Faili hii ni ya binari na haiwezi kuhaririwa hapa.</string>
+    <string name="editor_too_large">Faili hii ni %1$s, zaidi ya kikomo cha kuhariri kwenye kifaa hiki. Imefunguliwa kwa kusoma tu.</string>
+    <string name="editor_line_column">Mstari %1$d, safu %2$d</string>
+    <string name="editor_discard_title">Tupa mabadiliko?</string>
+    <string name="editor_discard_body">Una mabadiliko ambayo hayajahifadhiwa kwenye %1$s.</string>
+    <string name="editor_discard">Tupa</string>
+    <string name="editor_keep_editing">Endelea kuhariri</string>
+
+    <string name="diff_title">Kagua mabadiliko</string>
+    <string name="diff_summary">%1$d zimeongezwa, %2$d zimeondolewa</string>
+    <string name="diff_hunk">Badiliko %1$d kati ya %2$d</string>
+    <string name="diff_accept_hunk">Kubali</string>
+    <string name="diff_reject_hunk">Kataa</string>
+    <string name="diff_accept_all">Kubali zote</string>
+    <string name="diff_reject_all">Kataa zote</string>
+    <string name="diff_no_changes">Hakuna mabadiliko ya kukagua.</string>
+
+    <string name="checkpoints_title">Hatua za kurejea</string>
+    <string name="checkpoints_empty">Hakuna hatua za kurejea bado. Moja huchukuliwa kiotomatiki kabla wakala hajaandika.</string>
+    <string name="checkpoints_create">Chukua hatua ya kurejea</string>
+    <string name="checkpoints_restore">Rejesha</string>
+    <string name="checkpoints_delete">Futa</string>
+    <string name="checkpoints_automatic">Kiotomatiki</string>
+    <string name="checkpoints_restore_confirm">Rejesha “%1$s”? Faili zilizobadilishwa tangu wakati huo zitapotea.</string>
+    <string name="checkpoints_storage">Hatua za kurejea zinatumia %1$s</string>
+
+    <string name="terminal_unavailable_title">Hakuna terminali kwenye kifaa hiki</string>
+    <string name="terminal_start">Anzisha shell</string>
+    <string name="terminal_stop">Simamisha</string>
+    <string name="terminal_interrupt">Katiza</string>
+    <string name="terminal_exited">Shell imetoka na msimbo %1$d.</string>
+    <string name="terminal_input_hint">Andika amri</string>
+    <string name="terminal_setup_title">Sanidi mazingira ya Linux</string>
+    <string name="terminal_setup_body">%1$s inahitaji upakuaji wa %2$s na takribani %3$s ya nafasi.</string>
+    <string name="terminal_setup_start">Pakua na usakinishe</string>
+    <string name="terminal_downloading">Inapakua… %1$s kati ya %2$s</string>
+    <string name="terminal_verifying">Inathibitisha upakuaji…</string>
+    <string name="terminal_extracting">Inafungua…</string>
+    <string name="terminal_setup_failed">Usanidi umeshindwa: %1$s</string>
+    <string name="terminal_setup_unprovisioned">Toleo hili halina picha ya Linux iliyothibitishwa. Angalia docs/NATIVE_BINARIES.md.</string>
+    <string name="terminal_busybox_note">Amri za msingi za faili zinapatikana. Wasimamizi wa vifurushi, Node na Git hazipatikani.</string>
+
+    <string name="preview_unavailable_title">Onyesho halipatikani</string>
+    <string name="preview_refresh">Onyesha upya</string>
+    <string name="preview_url_hint">http://127.0.0.1:3000</string>
+    <string name="preview_serve_project">Hudumia mradi huu</string>
+    <string name="preview_stop_serving">Sitisha huduma</string>
+    <string name="preview_serving_at">Inahudumiwa kwenye %1$s</string>
+    <string name="preview_only_local">Ni anwani za kifaa hiki tu zinazoweza kufunguliwa hapa.</string>
+    <string name="preview_load_failed">Imeshindwa kupakia %1$s</string>
+
+    <string name="settings_providers">Watoa huduma wa AI</string>
+    <string name="settings_add_provider">Ongeza mtoa huduma</string>
+    <string name="settings_provider_type">Mtoa huduma</string>
+    <string name="settings_provider_name">Jina</string>
+    <string name="settings_base_url">Anwani ya seva</string>
+    <string name="settings_model">Modeli</string>
+    <string name="settings_api_key">Ufunguo wa API</string>
+    <string name="settings_api_key_saved">Ufunguo umehifadhiwa kwa mtoa huduma huyu.</string>
+    <string name="settings_api_key_optional">Si lazima kwa seva yako mwenyewe.</string>
+    <string name="settings_api_key_hint">Bandika ufunguo wako</string>
+    <string name="settings_save">Hifadhi</string>
+    <string name="settings_edit">Hariri</string>
+    <string name="settings_clear_log">Futa kumbukumbu</string>
+    <string name="settings_delete">Futa</string>
+    <string name="settings_test">Jaribu muunganisho</string>
+    <string name="settings_test_failed">Imeshindwa: %1$s</string>
+    <string name="settings_max_tokens">Urefu wa juu wa jibu</string>
+    <string name="settings_active">Inatumika</string>
+    <string name="settings_set_active">Tumia mtoa huduma huyu</string>
+
+    <string name="settings_device">Kifaa hiki</string>
+    <string name="settings_tier">Kiwango cha utendaji</string>
+    <string name="settings_tier_auto">Kiotomatiki</string>
+    <string name="settings_tier_full">Kamili</string>
+    <string name="settings_tier_lightweight">Chepesi</string>
+    <string name="settings_tier_explanation">Kiwango chepesi hutumia kumbukumbu kidogo na picha ndogo ya Linux. Kulazimisha kiwango kamili kwenye kifaa chenye kumbukumbu ndogo kunaweza kufanya mfumo ufunge programu.</string>
+    <string name="settings_abi">Muundo wa kichakataji</string>
+    <string name="settings_ram">Kumbukumbu</string>
+    <string name="settings_storage">Nafasi iliyobaki</string>
+    <string name="settings_linux_runtime">Mazingira ya Linux</string>
+    <string name="settings_detection_notes">Maelezo ya utambuzi</string>
+
+    <string name="settings_privacy">Faragha na usalama</string>
+    <string name="settings_auto_checkpoint">Chukua hatua ya kurejea kabla wakala hajaandika</string>
+    <string name="settings_auto_checkpoint_body">Huhifadhi nakala unayoweza kurejea.</string>
+    <string name="settings_session_approvals">Ruhusu idhini za “kwa kipindi hiki”</string>
+    <string name="settings_session_approvals_body">Zima ili uulizwe kabla ya kila hatua.</string>
+    <string name="settings_diagnostics">Kumbukumbu ya uchunguzi ya ndani</string>
+    <string name="settings_diagnostics_body">Imezimwa kwa chaguo-msingi. Huandika faili kwenye kifaa hiki pekee. Hakuna kinachopakiwa mtandaoni.</string>
+    <string name="settings_audit_log">Kumbukumbu ya shughuli</string>
+    <string name="settings_audit_log_body">Kila badiliko la faili, amri na ombi la mtandao.</string>
+    <string name="settings_clear_keys">Futa funguo zote za API zilizohifadhiwa</string>
+    <string name="settings_keystore_warning">Kifaa hiki hakikuweza kuhifadhi ufunguo kwenye hifadhi yake salama: %1$s</string>
+
+    <string name="settings_appearance">Muonekano</string>
+    <string name="settings_language">Lugha</string>
+    <string name="settings_language_system">Fuata mfumo</string>
+    <string name="settings_editor_font">Ukubwa wa maandishi ya kihariri</string>
+    <string name="settings_soft_wrap">Kunja mistari mirefu</string>
+    <string name="settings_line_numbers">Onyesha nambari za mistari</string>
+
+    <string name="settings_about">Kuhusu</string>
+    <string name="settings_version">Toleo %1$s</string>
+    <string name="settings_licence">Chanzo huria chini ya leseni ya MIT.</string>
+    <string name="settings_disclaimer">Haihusiani na, wala haijaidhinishwa au kufadhiliwa na mtoa huduma yeyote wa AI. Majina ya watoa huduma ni alama za biashara za wamiliki wao.</string>
+    <string name="settings_source">Msimbo wa chanzo</string>
+
+    <string name="action_confirm">Thibitisha</string>
+    <string name="action_cancel">Ghairi</string>
+    <string name="tier_badge_full">Kamili</string>
+    <string name="tier_badge_lightweight">Chepesi</string>
+
+    <plurals name="chat_iteration_limit">
+        <item quantity="one">Wakala amesimama baada ya zamu %1$d. Tuma ujumbe mwingine ili kuendelea.</item>
+        <item quantity="other">Wakala amesimama baada ya zamu %1$d. Tuma ujumbe mwingine ili kuendelea.</item>
+    </plurals>
+    <plurals name="diff_apply">
+        <item quantity="one">Tekeleza badiliko %1$d</item>
+        <item quantity="other">Tekeleza mabadiliko %1$d</item>
+    </plurals>
+    <plurals name="checkpoints_file_count">
+        <item quantity="one">Faili %1$d</item>
+        <item quantity="other">Faili %1$d</item>
+    </plurals>
+    <plurals name="settings_test_ok">
+        <item quantity="one">Imeunganishwa. Modeli %1$d inapatikana.</item>
+        <item quantity="other">Imeunganishwa. Modeli %1$d zinapatikana.</item>
+    </plurals>
+</resources>

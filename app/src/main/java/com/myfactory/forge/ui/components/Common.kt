@@ -1,0 +1,127 @@
+package com.myfactory.forge.ui.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+
+/** The empty state used across Projects, Chat, Files and Checkpoints. */
+@Composable
+fun EmptyState(
+    icon: ImageVector,
+    title: String,
+    body: String,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        Text(
+            text = body,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        if (actionLabel != null && onAction != null) {
+            TextButton(onClick = onAction, modifier = Modifier.padding(top = 12.dp)) {
+                Text(actionLabel)
+            }
+        }
+    }
+}
+
+/** A small labelled fact, used throughout the settings screen. */
+@Composable
+fun DetailRow(label: String, value: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.End,
+        )
+    }
+}
+
+@Composable
+/**
+ * A read-only badge.
+ *
+ * Deliberately a Surface rather than an AssistChip with an empty onClick: a
+ * chip announces itself to a screen reader as a button, and a button that
+ * does nothing when activated is worse than plain text.
+ */
+fun TierChip(label: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
+    }
+}
+
+/**
+ * Human-readable byte counts, used in several screens.
+ *
+ * The locale is passed explicitly. This text is shown to the user, so it
+ * should follow their locale's decimal separator and digits, and relying on
+ * the implicit default is the kind of thing that silently changes behaviour
+ * when a library sets it.
+ */
+fun formatBytes(bytes: Long, locale: java.util.Locale = java.util.Locale.getDefault()): String =
+    when {
+        bytes >= 1024L * 1024 * 1024 ->
+            String.format(locale, "%.1f GB", bytes.toDouble() / (1024L * 1024 * 1024))
+        bytes >= 1024 * 1024 -> String.format(locale, "%d MB", bytes / (1024 * 1024))
+        bytes >= 1024 -> String.format(locale, "%d KB", bytes / 1024)
+        else -> String.format(locale, "%d B", bytes)
+    }
